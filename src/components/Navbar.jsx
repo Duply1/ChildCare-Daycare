@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Menu, X, Star, Phone } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Menu, X, Star, LogIn, Home } from 'lucide-react'
 import './Navbar.css'
 
-const NAV_LINKS = [
-  { label: 'Home', href: '#home' },
+const SECTION_LINKS = [
   { label: 'About', href: '#about' },
   { label: 'Programs', href: '#programs' },
   { label: 'Why Us', href: '#features' },
@@ -14,6 +14,9 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const isLoginPage = location.pathname === '/login'
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -21,18 +24,30 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const handleNavClick = (e, href) => {
+  // Close mobile menu on route change
+  useEffect(() => { setIsOpen(false) }, [location.pathname])
+
+  const handleSectionNav = (e, href) => {
     e.preventDefault()
     setIsOpen(false)
-    const el = document.querySelector(href)
-    if (el) el.scrollIntoView({ behavior: 'smooth' })
+    if (location.pathname !== '/') {
+      navigate('/')
+      setTimeout(() => {
+        document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    } else {
+      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' })
+    }
   }
 
+  const isScrolled = scrolled || isLoginPage
+
   return (
-    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+    <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
       <div className="nav-container container">
+
         {/* Logo */}
-        <a href="#home" className="nav-logo" onClick={(e) => handleNavClick(e, '#home')}>
+        <Link to="/" className="nav-logo">
           <div className="logo-icon">
             <Star size={18} fill="white" color="white" />
           </div>
@@ -40,16 +55,25 @@ export default function Navbar() {
             <span className="logo-name">Little Stars</span>
             <span className="logo-sub">Childcare</span>
           </div>
-        </a>
+        </Link>
 
         {/* Desktop links */}
         <ul className="nav-links">
-          {NAV_LINKS.map((link) => (
+          {/* Home link — always first */}
+          <li>
+            <Link to="/" className="nav-link nav-link-home">
+              <Home size={14} />
+              Home
+            </Link>
+          </li>
+
+          {/* Section links (only shown on home page) */}
+          {!isLoginPage && SECTION_LINKS.map((link) => (
             <li key={link.href}>
               <a
                 href={link.href}
                 className="nav-link"
-                onClick={(e) => handleNavClick(e, link.href)}
+                onClick={(e) => handleSectionNav(e, link.href)}
               >
                 {link.label}
               </a>
@@ -57,19 +81,19 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* CTA */}
-        <div className="nav-cta">
-          <a href="tel:+15551234567" className="nav-phone">
-            <Phone size={15} />
-            (555) 123-4567
-          </a>
-          <a
-            href="#contact"
-            className="btn-primary nav-btn"
-            onClick={(e) => handleNavClick(e, '#contact')}
-          >
-            Enroll Now
-          </a>
+        {/* Right side: Login button */}
+        <div className="nav-right">
+          {isLoginPage ? (
+            <Link to="/" className="btn-outline nav-login-btn">
+              <Home size={15} />
+              Back to Home
+            </Link>
+          ) : (
+            <Link to="/login" className="nav-login-btn login-btn">
+              <LogIn size={15} />
+              Parent Login
+            </Link>
+          )}
         </div>
 
         {/* Hamburger */}
@@ -85,12 +109,18 @@ export default function Navbar() {
       {/* Mobile menu */}
       <div className={`mobile-menu ${isOpen ? 'open' : ''}`}>
         <ul className="mobile-links">
-          {NAV_LINKS.map((link) => (
+          <li>
+            <Link to="/" className="mobile-link mobile-link-home">
+              <Home size={16} />
+              Home
+            </Link>
+          </li>
+          {!isLoginPage && SECTION_LINKS.map((link) => (
             <li key={link.href}>
               <a
                 href={link.href}
                 className="mobile-link"
-                onClick={(e) => handleNavClick(e, link.href)}
+                onClick={(e) => handleSectionNav(e, link.href)}
               >
                 {link.label}
               </a>
@@ -98,18 +128,17 @@ export default function Navbar() {
           ))}
         </ul>
         <div className="mobile-cta">
-          <a href="tel:+15551234567" className="btn-outline" style={{ width: '100%', justifyContent: 'center' }}>
-            <Phone size={15} />
-            (555) 123-4567
-          </a>
-          <a
-            href="#contact"
-            className="btn-primary"
-            style={{ width: '100%', justifyContent: 'center' }}
-            onClick={(e) => handleNavClick(e, '#contact')}
-          >
-            Enroll Now
-          </a>
+          {isLoginPage ? (
+            <Link to="/" className="btn-outline" style={{ width: '100%', justifyContent: 'center' }}>
+              <Home size={15} />
+              Back to Home
+            </Link>
+          ) : (
+            <Link to="/login" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+              <LogIn size={15} />
+              Parent Login
+            </Link>
+          )}
         </div>
       </div>
     </nav>
